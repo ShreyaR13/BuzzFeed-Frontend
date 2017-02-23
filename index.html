@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>BuzzFeed Tech Feed</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="css/solid.2.6.0.css">
+</head>
+
+<body>
+    <div class="xs-col-11 xs-py3 xs-px1 xs-mx-auto xs-my2 md-my4 card">
+        <h1 class="xs-col-11 sm-col-10 xs-mx-auto xs-border-bottom xs-pb3 xs-mb4 sm-my4">Tech Feed</h1>
+        <h4 class="xs-col-11 sm-col-10 xs-mx-auto xs-pb3 xs-mb4 sm-my4">Hello, This is Shreya. I currently pursuing Masters in computer Science from Pace University. This page displays the BuzzFeed articles in infinite loop</h4>
+        <div class="xs-col-11 sm-col-10 xs-mx-auto">
+            <section class="xs-mb6">
+                <div id="feedsContainer" class="xs-block-grid-2 md-block-grid-3 lg-block-grid-4 xs-mb4">
+                    <h2 class="bold xs-mb2">Page 1</h2>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var CROS_URL = "https://cors-anywhere.herokuapp.com/";
+        var page_number = 1;
+        var diplayed_post = 0;
+        var feedData = null;
+
+        $(document).ready(function () {
+            
+             /**
+             * It fetches JSON data from BuzzFeed API URL for specified Page and saves it to feedData.
+             * To fetch data from cross-origin domain this function uses CROS API url.
+             * @param {String} url 
+             * @param {Number} page
+             */
+            function getJSONforPage(url, page) {
+                tmpData = "Error";
+                tmpURL = CROS_URL + url + "?p=" + page;
+                $("#feedsContainer").append("<img class='loadingSelector' src='img/loading.gif' alt='Loading' style='width:50px;height:50px;display:block;margin:auto;'>");
+
+                $.ajax({
+                    url: tmpURL,
+                    dataType: 'JSON',
+                    type: 'GET',
+                    async: false,
+                    success: function (data) {
+                        feedData = data['buzzes'];
+                    }
+                });
+            }
+            
+             /**
+             * It is used to display feeds on page as well as it can load next page if all feed displayed from current page.
+             */
+            function displayFeeds() {
+                if (diplayed_post < 25) {
+                    var step;
+                    for (step = diplayed_post; step < diplayed_post + 5; step++) {
+                        bigimgURL = feedData[step].images['big'];
+                        feedDescription = feedData[step].description;
+
+                        var $tmp = "<div class='block-grid__item fill-white xs-border'>";
+                        $tmp = $tmp + "<img class='xs-col-12 xs-block' src='" + bigimgURL + "'><div class='xs-p1'>";
+                        $tmp = $tmp + "<h5 class='xs-mb1'>" + feedDescription + "</h5></div></div>";
+                        $("#feedsContainer").append($tmp);
+                    };
+
+                    diplayed_post += 5;
+                } else {
+
+                    page_number += 1;
+                    $("#feedsContainer").append("<h2 class='bold xs-mb2'>Page " + page_number + "</h2>");
+                    getJSONforPage("https://www.buzzfeed.com/api/v2/feeds/tech", page_number);
+
+                    diplayed_post = 0;
+                    var step;
+                    for (step = diplayed_post; step < diplayed_post + 5; step++) {
+                        bigimgURL = feedData[step].images['big'];
+                        feedDescription = feedData[step].description;
+
+                        var $tmp = "<div class='block-grid__item fill-white xs-border'>";
+                        $tmp = $tmp + "<img class='xs-col-12 xs-block' src='" + bigimgURL + "'><div class='xs-p1'>";
+                        $tmp = $tmp + "<h5 class='xs-mb1'>" + feedDescription + "</h5></div></div>";
+
+                        $("#feedsContainer").append($tmp);
+                    }
+                }
+
+                $(".loadingSelector").remove();
+            }
+
+            getJSONforPage("https://www.buzzfeed.com/api/v2/feeds/tech", page_number);
+            displayFeeds();
+
+             /**
+             * This event check for the page bottom, if reached then calls displayFeeds().
+             * It helps us to add infinite scroll to this page.
+             */
+            $(window).scroll(function () {
+                if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+                    displayFeeds();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
